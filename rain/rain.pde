@@ -1,62 +1,59 @@
-int BG_BRIGHTNESS = 255;
-int FRAMES = 1000;
-float MAX_RADIUS = 100;
-int TOTAL_DROPS = 100;
-float SPREAD_SPEED = 2;
-float AFTERDROP_INTENSITY = 0.3;
-int frame = 0;
+int FRAMES = 100;
+int TOTAL_DROPS = 30;
 
+float SPREAD_SPEED = 2;
+int BG_BRIGHTNESS = 255;
+float MAX_RADIUS = 100;
+float AFTERDROP_INTENSITY = 0.3;
 
 int SIZE = 500;
 int PADDING = 5;
 int LOWER_BOUND = PADDING;
 int UPPER_BOUND = SIZE - PADDING;
+
+int frame = 0;
 ArrayList<Drop> drops = new ArrayList<Drop>();
-Drop drop;
+
+
+float mod(float n, float d) {
+  return ((n % d) + d) % d;
+}
+
 
 void setup() {
   size(500, 500); // can't use size() with variables
   noFill();
+  print(mod(3 - 997, FRAMES));
   background(BG_BRIGHTNESS, BG_BRIGHTNESS, BG_BRIGHTNESS);
-  // drop = new Drop(width / 2, height / 2);
   for (int i = 0; i < TOTAL_DROPS; i++) {
-    drops.add(new Drop());
+    int x = int(random(LOWER_BOUND, UPPER_BOUND));
+    int y = int(random(LOWER_BOUND, UPPER_BOUND));
+    int entranceFrame = int(random(FRAMES));
+    drops.add(new Drop(x, y, entranceFrame, 1.0));
+    drops.add(new Drop(x, y, entranceFrame + 10, 0.8));
   }
 }
 
-// void initializeDrops() {
-//   for (int i = 0; i < TOTAL_DROPS; i++) {
-//     int randX =
-
-
-//     drops.add(new Drop())
-//   }
-// }
 
 class Drop {
   int x, y, entranceFrame;
-  float radius;
-  Drop() {
-    x = int(random(LOWER_BOUND, UPPER_BOUND));
-    y = int(random(LOWER_BOUND, UPPER_BOUND));
-    entranceFrame = int(random(FRAMES));
+  float intensity;
+  Drop(int x0, int y0, int entrance, float inten) {
+    x = x0;
+    y = y0;
+    entranceFrame = entrance;
+    intensity = inten;
+  }
+
+  float getRadius() {
+    int lifetime = mod((frame - entranceFrame), FRAMES)
+    return lifetime * SPREAD_SPEED;
   }
 
   void update() {
-    radius = (frame - entranceFrame) * SPREAD_SPEED;
+    float radius = getRadius();
     if (0 < radius && radius < MAX_RADIUS) {
-      draw();
-    }
-  }
-
-  void draw() {
-    _setColor(radius, 1);
-    ellipse(x, y, radius, radius);
-
-    float afterdropRadius = radius - 10 * SPREAD_SPEED;
-    if (afterdropRadius > 0) {
-      _setColor(afterdropRadius, AFTERDROP_INTENSITY);
-      ellipse(x, y, afterdropRadius, afterdropRadius);
+      drawDrop(radius);
     }
   }
 
@@ -65,8 +62,11 @@ class Drop {
     stroke(0, 0, 255, alpha);
   }
 
+  void drawDrop(float radius) {
+    _setColor(radius, intensity);
+    ellipse(x, y, radius, radius);
+  }
 }
-
 
 void draw() {
   if (frame < FRAMES) {
@@ -75,8 +75,8 @@ void draw() {
     for (Drop d : drops) {
       d.update();
     }
-    //drop.update();
   } else {
     noLoop();
   }
+  saveFrame("../.out/image-####.gif");
 }
